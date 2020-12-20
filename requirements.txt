@@ -1,0 +1,9 @@
+gevent==20.6.2 
+Flask==1.1.2             
+pandas==1.0.3  
+baostock==0.8.8
+requests==2.22.0
+Flask-SQLAlchemy==2.4.4   
+click==7.1.2
+numpy==1.17.4
+simplejson==3.17.0

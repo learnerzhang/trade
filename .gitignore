@@ -1,0 +1,14 @@
+node_modules
+yarn.lock
+package-lock.json
+.idea
+# data
+confs
+data/stocks
+data/dataset.csv
+data/models
+.vscode
+*.pyc
+sequoia.log
+.DS_Store
+*.log
