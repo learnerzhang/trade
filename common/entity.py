@@ -35,6 +35,9 @@ class Block(Base):
 		self.code = code
 		self.name = name
 
+	def set_name(self, name):
+		self.name = name
+
 	def __hash__(self):
 		return hash(self.code + self.name)
 
@@ -58,6 +61,9 @@ class Stock(Base):
 		self.code = code
 		self.mark = mark
 
+	def set_name(self, name):
+		self.name = name
+
 	def __hash__(self):
 		return hash(self.code + self.name)
 
@@ -77,7 +83,7 @@ class BlockStock(Base):
 		self.block_id = b_id
 
 	def __repr__(self):
-		return "<BlockStock(id='%s', block_id='%s', stock_id='%s'>" % (self.id, self.block_id, self.stock_id)
+		return "<BlockStock(id='%s', block_id='%s', stock_id='%s', flag='%s'>" % (self.id, self.block_id, self.stock_id, self.flag)
 
 
 class Record(Base):

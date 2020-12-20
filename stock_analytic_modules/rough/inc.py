@@ -20,6 +20,7 @@ from common.entity import Record
 from common.mail_utils import send_hot_share_mail
 from common.sql_utils import get_mark_stocks, insert_records, get_records, get_period_records
 from common.stock_utils import get_recently_trade_date
+from stock_analytic_modules.rough.m_hunt import get_m_candidates
 from stock_analytic_modules.utils.helper import moving_average, slope
 import pandas as pd
 
@@ -165,6 +166,13 @@ def period_records():
 	extraResult['week_best'] = sorted(collections.Counter(week_bests).items(), key=lambda x: x[1], reverse=True)
 	extraResult['high'] = new_highs
 	extraResult['low'] = new_lows
+
+	# 月线趋势选股
+	# 结构 [(('sh.600196', '复星医药'), 44517688035.19, 2269476415.0), (('sh.600887', '伊利股份'), 29118278005.35, 1554822026.0), ..]
+	breakstocks, highstocks = get_m_candidates()
+	extraResult['m_break'] = breakstocks
+	extraResult['m_high'] = highstocks
+
 	send_hot_share_mail(outResult, extraResult)
 
 

@@ -51,12 +51,12 @@ def clean_files():
 
 
 # 读取本地数据文件
-def read_data(code_name):
+def read_data(code_name, root=ConfigUtils.get_stock("DATA_DIR")):
 	code = code_name[0]
 	name = code_name[1]
 	df = None
 	file_name = str(code) + '_' + str(name) + '.csv'
-	file_path = ConfigUtils.get_stock("DATA_DIR") + "/" + file_name
+	file_path = root + "/" + file_name
 	if os.path.exists(file_path):
 		try:
 			df = pd.read_csv(file_path)
@@ -71,6 +71,8 @@ def read_data(code_name):
 		df["close"] = df["close"].astype(float)
 		df["preclose"] = df["preclose"].astype(float)
 		df["volume"] = df["volume"].astype(float)
+		df["amount"] = df["amount"].astype(float)
+		df["turn"] = df["turn"].astype(float)
 		df["pctChg"] = df["pctChg"].astype(float)
 		return df
 	return None

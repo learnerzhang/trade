@@ -85,17 +85,17 @@ def new_change_html(records):
 	tr_html = ""
 	if records:
 		bgcolor = '#FFFFF'
-		for r in records[:15]:
+		for r in records[:30]:
 			bgcolor ='#99FFFF'
 			tr_html += """ <tr>
 			<td bgcolor='""" + bgcolor + """'>""" + r.code + """</td>
 			<td bgcolor='""" + bgcolor + """'>""" + r.name + """</td>
 			<td bgcolor='""" + bgcolor + """'>""" + str(round(r.change, 3)) + """</td></tr>"""
 
-		if len(records) > 30:
-			_records = records[-15:]
+		if len(records) > 40:
+			_records = records[-10:]
 		else:
-			_records = records[15:]
+			_records = records[30:]
 
 		for r in _records:
 			bgcolor = '#FFFFF'
@@ -153,6 +153,28 @@ def send_hot_share_mail(contentResult, extraResult):
   				<p><strong>周新高榜</strong></p>
   				<div> 
   					""" + big_change_html(extraResult['week_best'], top=20) + """
+  				<div>
+  				<p><strong>月级别突破</strong></p>
+  				<div>
+  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
+  						<tr>
+    						<td><strong>代码</strong></td>
+    						<td><strong>名称</strong></td>
+    						<td><strong>涨幅</strong></td>
+  						</tr>
+  						""" + new_change_html(extraResult['m_break']) + """
+  					</table>
+  				<div>
+  				<p><strong>月级新高股</strong></p>
+  				<div>
+  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
+  						<tr>
+    						<td><strong>代码</strong></td>
+    						<td><strong>名称</strong></td>
+    						<td><strong>涨幅</strong></td>
+  						</tr>
+  						""" + new_change_html(extraResult['m_high']) + """
+  					</table>
   				<div>
   				<p><strong>2年新高股</strong></p>
   				<div>

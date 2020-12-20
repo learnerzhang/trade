@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 import sys, getopt
 import pprint
 from common.entity import Base, Stock, Block, BlockStock, Record
-from data_modules.ths_reptile import init_block_stocks, init_q_stocks
+from data_modules.ths_reptile import init_q_stocks, reptile_blocks, reptile_block_stocks
 from common.config import ConfigUtils
 
 engine = create_engine('sqlite:////Users/zhangzhen12/data/share.db?check_same_thread=False', echo=True)
@@ -28,69 +28,99 @@ def drop_db():  # 删除表
 	Base.metadata.drop_all(engine)
 
 
+def init_blocks():
+	blocks = reptile_blocks()
+	Session = sessionmaker(engine)
+	db_session = Session()
+	for block in blocks:
+		try:
+			tmp_block = db_session.query(Block).filter(Block.name == block.name, Block.code == block.code).first()
+			if tmp_block:
+				tmp_block.set_name(block.name)
+			else:
+				db_session.add(block)
+			db_session.commit()
+		except IOError:
+			db_session.rollback()
+			print("Error Constraint.", block)
+	print("init block success.")
+
+
 def init_stocks():
 	stocks = init_q_stocks()
 	Session = sessionmaker(engine)
 	db_session = Session()
-	try:
-		db_session.add_all(stocks)
-		db_session.commit()
-	except:
-		db_session.rollback()
-		print("Error Init Stocks.")
+	for stock in stocks:
+		try:
+			tmp_block = db_session.query(Stock).filter(Stock.code == stock.code).first()
+			if tmp_block:
+				tmp_block.set_name(stock.name)
+			else:
+				db_session.add(stock)
+			db_session.commit()
+		except IOError:
+			db_session.rollback()
+			print("Error Constraint.", stock)
+	print("init stock success.")
 
 
-def init_data():
+def init_block_stocks():
 	Session = sessionmaker(engine)
 	db_session = Session()
 
-	block2stocks, stock2blocks = init_block_stocks()
+	block2stocks = reptile_block_stocks()
+	for block_code, stocks in block2stocks.items():
+		tmp_block = db_session.query(Block).filter(Block.code == block_code).first()
+		# 版块不存在
+		if tmp_block is None:
+			continue
 
-	blocks = list(block2stocks.keys())
-	stocks = list(stock2blocks)
+		for stock in stocks:
+			try:
+				tmp_stock = db_session.query(Stock).filter(Stock.code == stock.code).first()
+				if tmp_stock is None:
+					continue
+				bs = BlockStock(b_id=tmp_block.id, s_id=tmp_stock.id)
 
-	try:
-		db_session.add_all(blocks)
-		db_session.add_all(stocks)
-		db_session.commit()
-	except sqlalchemy.exc.IntegrityError:
-		db_session.rollback()
-		print("Error Constraint.")
-
-	for b, _stocks in block2stocks.items():
-		for s in _stocks:
-			_bs = db_session.query(Block).filter(Block.name == b.name, Block.code == b.code).all()
-			_ss = db_session.query(Stock).filter(Stock.name == s.name, Stock.code == s.code).all()
-			if len(_bs) > 0 and len(_ss) > 0:
-				try:
-					b_stock = BlockStock(_bs[0].id, _ss[0].id)
-					db_session.add(b_stock)
-					db_session.commit()
-				except sqlalchemy.exc.IntegrityError:
-					db_session.rollback()
-					print("Error Constraint.")
-			else:
-				print("Error, no safe.")
+				tmp_bs = db_session.query(BlockStock)\
+					.filter(BlockStock.block_id == bs.block_id, BlockStock.stock_id == bs.stock_id)\
+					.first()
+				# b-s 映射
+				if tmp_bs:
+					continue
+				db_session.add(bs)
+				db_session.commit()
+			except IOError:
+				db_session.rollback()
+				print("Error Constraint.")
 
 
 def query_stocks():
 	Session = sessionmaker(engine)
 	db_session = Session()
 
-	blocks = db_session.query(Block).filter(Block.name == '拼多多概念').all()
+	blocks = db_session.query(Block).all()
 	print(len(blocks))
 	for block in blocks:
 		print(block)
 
+	blocks = db_session.query(Block).filter(Block.name == '拼多多概念').all()
+	print(len(blocks))
+	for block in blocks:
+		# print(block)
+		pass
+
 	stocks = db_session.query(Stock).all()
 	print(len(stocks))
 	for stock in stocks:
-		print(stock)
+		# print(stock)
+		pass
 
 	block_stocks = db_session.query(BlockStock).all()
 	print(len(block_stocks))
 	for b_s in block_stocks:
 		print(b_s)
+		pass
 
 
 def get_stocks():
@@ -161,24 +191,6 @@ def insert_records(records):
 	return ConfigUtils.OK
 
 
-def update_stocks():
-	stocks = init_q_stocks()
-	Session = sessionmaker(engine)
-	db_session = Session()
-
-	for s in stocks:
-		tmp_stocks = db_session.query(Stock).filter(Stock.code == s.code).all()
-		if tmp_stocks:
-			print("{} has exist".format(s))
-			continue
-		try:
-			db_session.add(s)
-			db_session.commit()
-		except IOError:
-			db_session.rollback()
-			print("Error Init Stocks.")
-
-
 def main(argv):
 	mode = None
 	try:
@@ -197,10 +209,12 @@ def main(argv):
 		drop_db()
 	if mode == 'db':
 		init_db()
-	if mode == 'init':
-		init_data()
-	if mode == 'update':
-		update_stocks()
+	if mode == 'init-blocks':
+		init_blocks()
+	if mode == 'init-stocks':
+		init_stocks()
+	if mode == 'init-bs':
+		init_block_stocks()
 	if mode == 'demo':
 		query_stocks()
 	if mode == 'record':

@@ -87,7 +87,59 @@ def get_all_stock_industries():
 	bs.logout()
 
 
-def update_trades(select=False):
+def period_trades():
+	pth = os.path.join(ConfigUtils.get_stock("DATA_DIR"))
+	m_pth = os.path.join(ConfigUtils.get_stock("DATA_M_DIR"))
+	if not os.path.exists(m_pth):
+		os.mkdir(m_pth)
+
+	for fname in os.listdir(pth):
+		try:
+			df = pd.read_csv(os.path.join(pth, fname))
+			df['date'] = pd.to_datetime(df['date'])
+			df = df.set_index('date')
+			df = df.sort_index(ascending=True)
+			df_period = df.to_period('M')
+			grouped = df_period.groupby('date')
+
+			results = pd.DataFrame(columns=['date', 'code', 'open',
+											'preclose', 'close', 'high', 'low', 'volume', 'turn', 'amount', 'pctChg'])
+			for name, group in grouped:
+				code = group.iloc[0]['code']
+				open = group.iloc[0]['open']
+				preclose = group.iloc[0]['preclose']
+				close = group.iloc[-1]['close']
+				high = group['high'].max()
+				low = group['low'].min()
+				volume = group['volume'].sum()
+				turn = group['turn'].sum()
+				amount = group['amount'].sum()
+				if pd.isna(preclose):
+					pctChg = (close - open) / preclose
+				else:
+					pctChg = (close - preclose) / preclose
+				# print(name, code, preclose, open, close, high, low, volume, turn, amount, pctChg)
+				series = pd.Series({'date': name,
+										  'code': code,
+										  'open': open,
+										  'preclose': preclose,
+										  'close': close,
+										  'high': high,
+										  'low': low,
+										  'volume': volume,
+										  'turn': turn,
+										  'amount': amount,
+										  'pctChg': pctChg}, name=name)
+				results = results.append(series)
+			results.reset_index(drop=True)
+			results.to_csv(os.path.join(m_pth, fname), index=False)
+		except pd.errors.EmptyDataError:
+			print("Empty file:", fname)
+		except KeyError:
+			print("KeyError file:", fname)
+
+
+def update_all_trades():
 	try:
 		et = stock_utils.get_recently_trade_date()
 		st = ConfigUtils.get_stock("START_DATE")
@@ -96,12 +148,8 @@ def update_trades(select=False):
 		lg = bs.login()
 		# 显示登陆返回信息
 		print('login respond error_code:' + lg.error_code + ', error_msg:' + lg.error_msg)
-
-		if not select:
-			print("stock—name path:", ConfigUtils.get_stock("STOCK_NAME"))
-			pd_names = pd.read_csv(ConfigUtils.get_stock("STOCK_NAME"))
-		else:
-			pd_names = pd.read_csv(ConfigUtils.get_stock("HS_300_STOCK_NAME"))
+		print("stock—name path:", ConfigUtils.get_stock("STOCK_NAME"))
+		pd_names = pd.read_csv(ConfigUtils.get_stock("STOCK_NAME"))
 
 		for index, row in pd_names.iterrows():
 			code = row['code']
@@ -115,12 +163,62 @@ def update_trades(select=False):
 			print(result.tail())
 			if not os.path.exists(ConfigUtils.get_stock("DATA_DIR")):
 				os.makedirs(ConfigUtils.get_stock("DATA_DIR"))
-			result.to_csv(os.path.join(ConfigUtils.get_stock("DATA_DIR"), code + "_" + name + ".csv"), index=False)
+			result.to_csv(os.path.join(ConfigUtils.get_stock("DATA_DIR"), str(code) + "_" + str(name) + ".csv"), index=False)
 			print("Downloading :" + code + " , name :" + name)
+
+			# 生成月线级别
+			result['date'] = pd.to_datetime(result['date'])
+			result = result.set_index('date')
+			result = result.sort_index(ascending=True)
+			df_period = result.to_period('M')
+			grouped = df_period.groupby('date')
+			results = pd.DataFrame(columns=['date', 'code', 'open',
+											'preclose', 'close', 'high', 'low', 'volume', 'turn', 'amount', 'pctChg'])
+			for date, group in grouped:
+
+				group["open"] = group['open'].astype(float)
+				group["high"] = group["high"].astype(float)
+				group["low"] = group["low"].astype(float)
+				group["close"] = group["close"].astype(float)
+				group["preclose"] = group["preclose"].astype(float)
+				group["volume"] = group["volume"].astype(float)
+				group["amount"] = group["amount"].astype(float)
+				group["turn"] = group["turn"].astype(float)
+				group["pctChg"] = group["pctChg"].astype(float)
+
+				code = group.iloc[0]['code']
+				open = group.iloc[0]['open']
+				preclose = group.iloc[0]['preclose']
+				close = group.iloc[-1]['close']
+				high = group['high'].max()
+				low = group['low'].min()
+				volume = group['volume'].sum()
+				turn = group['turn'].sum()
+				amount = group['amount'].sum()
+				if pd.isna(preclose):
+					pctChg = (close - open) / open
+				else:
+					pctChg = (close - preclose) / preclose
+				# print(name, code, preclose, open, close, high, low, volume, turn, amount, pctChg)
+
+				series = pd.Series({'date': date,
+									'code': code,
+									'open': open,
+									'preclose': preclose,
+									'close': close,
+									'high': high,
+									'low': low,
+									'volume': volume,
+									'turn': turn,
+									'amount': amount,
+									'pctChg': pctChg}, name=date)
+				results = results.append(series)
+			results.reset_index(drop=True)
+			results.to_csv(os.path.join(ConfigUtils.get_stock("DATA_M_DIR"), str(code) + "_" + str(name) + ".csv"), index=False)
+			print("M Downloading :" + str(code) + " , name :" + str(name))
 		bs.logout()
 	except IOError as e:
 		print("Update Data Error ", e)
-
 
 def main(argv):
 	mode = None
@@ -140,7 +238,10 @@ def main(argv):
 		hs300_stocks()
 
 	if mode == 'all':
-		update_trades(select=False)
+		update_all_trades()
+
+	if mode == 'period':
+		period_trades()
 
 
 if __name__ == '__main__':

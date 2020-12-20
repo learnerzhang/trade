@@ -31,6 +31,8 @@ zxb_url = "http://q.10jqka.com.cn/index/index/board/zxb/field/zdf/order/desc/pag
 hsb_url = "http://q.10jqka.com.cn/index/index/board/hs/field/zdf/order/desc/page/{}/ajax/1/"
 ssb_url = "http://q.10jqka.com.cn/index/index/board/ss/field/zdf/order/desc/page/{}/ajax/1/"
 
+block_stocks_url = "http://q.10jqka.com.cn/gn/detail/field/264648/order/desc/page/{}/ajax/1/code/"
+
 user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36'
 cookie = 'searchGuide=sg; Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1607586976; spversion=20130314; user=MDq358fh1Ma1rVlQbTo6Tm9uZTo1MDA6NDQ2NzA4NzM0OjcsMTExMTExMTExMTEsNDA7NDQsMTEsNDA7NiwxLDQwOzUsMSw0MDsxLDEwMSw0MDsyLDEsNDA7MywxLDQwOzUsMSw0MDs4LDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxLDQwOzEwMiwxLDQwOjI1Ojo6NDM2NzA4NzM0OjE2MDc2NzA1Nzk6OjoxNTE4MTUxMTQwOjYwNDgwMDowOjFiYjlmY2QxZDNmNTBjMTVjMzRhOWVjMDgzZWEwZWI0YzpkZWZhdWx0XzQ6MQ%3D%3D; userid=436708734; u_name=%B7%E7%C7%E1%D4%C6%B5%ADYPm; escapename=%25u98ce%25u8f7b%25u4e91%25u6de1YPm; ticket=9b0bcbe740bc3ca34e130ef8320e03b6; user_status=0; __utma=156575163.2035611393.1607676715.1607676715.1607676715.1; __utmc=156575163; __utmz=156575163.1607676715.1.1.utmcsr=10jqka.com.cn|utmccn=(referral)|utmcmd=referral|utmcct=/; Hm_lpvt_78c58f01938e4d85eaf619eae71b4ed1=1607676824; historystock=002571%7C*%7C002594; v=AjGDlx6QyhP4emYH0sCPzb7mRrbIHqWWT5JJnhNGLfgXOl9gW261YN_iWgWg'
 
@@ -55,7 +57,7 @@ def reptile_req(url):
 		return None
 
 
-def reptile_block():
+def reptile_blocks():
 	rs_blocks = []
 
 	page = 1
@@ -100,11 +102,11 @@ def reptile_block():
 
 			rs_blocks.append(Block(block_name, block_code, block_date, block_stock_url))
 		page += 1
-	# break
+		# break
 	return rs_blocks
 
 
-def reptile_stock(ori_url, mark=None):
+def reptile_stock(ori_url, mark=None,):
 	rs_stocks = []
 	page = 1
 	total_page = page
@@ -158,29 +160,17 @@ def init_q_stocks():
 	return zx_stocks + hs_stocks + ss_stocks
 
 
-def init_block_stocks():
+def reptile_block_stocks():
 	block2stocks = collections.defaultdict(list)
-	stock2blocks = collections.defaultdict(list)
-	unique_stocks = {}
-
-	all_blocks = reptile_block()
-	for b in all_blocks:
-		block_url = stock_url + "/" + b.code
-		tmp_stocks = reptile_stock(block_url)
-
-		stocks = []
-		for s in tmp_stocks:
-			key = s.name + s.code
-			if key not in unique_stocks:
-				unique_stocks[key] = s
-			stocks.append(unique_stocks[key])
-
-		block2stocks[b] = stocks
-		for s in stocks:
-			stock2blocks[s].append(b)
-
-	return block2stocks, stock2blocks
+	blocks = reptile_blocks()
+	for block in blocks:
+		url = block_stocks_url + block.code
+		stocks = reptile_stock(ori_url=url)
+		block2stocks[block.code] = stocks
+	return block2stocks
 
 
 if __name__ == '__main__':
+	# reptile_blocks()
+	reptile_block_stocks()
 	pass
