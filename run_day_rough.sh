@@ -5,6 +5,8 @@ conda activate env
 
 python -m data_modules.baostock_reptile -m all
 
+python -m data_modules.baostock_reptile -m period
+
 python -m stock_analytic_modules.rough.run_rough -m persist
 
 python -m stock_analytic_modules.rough.run_rough -m report

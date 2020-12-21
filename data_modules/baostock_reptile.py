@@ -1,7 +1,7 @@
 # -*- encoding: UTF-8 -*-
 import getopt
 import sys
-
+import datetime
 import baostock as bs
 import pandas as pd
 import logging
@@ -120,19 +120,20 @@ def period_trades():
 					pctChg = (close - preclose) / preclose
 				# print(name, code, preclose, open, close, high, low, volume, turn, amount, pctChg)
 				series = pd.Series({'date': name,
-										  'code': code,
-										  'open': open,
-										  'preclose': preclose,
-										  'close': close,
-										  'high': high,
-										  'low': low,
-										  'volume': volume,
-										  'turn': turn,
-										  'amount': amount,
-										  'pctChg': pctChg}, name=name)
+									'code': code,
+									'open': open,
+									'preclose': preclose,
+									'close': close,
+									'high': high,
+									'low': low,
+									'volume': volume,
+									'turn': turn,
+									'amount': amount,
+									'pctChg': pctChg}, name=name)
 				results = results.append(series)
 			results.reset_index(drop=True)
 			results.to_csv(os.path.join(m_pth, fname), index=False)
+			print("{} Month K done, {}".format(fname, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 		except pd.errors.EmptyDataError:
 			print("Empty file:", fname)
 		except KeyError:
@@ -163,62 +164,13 @@ def update_all_trades():
 			print(result.tail())
 			if not os.path.exists(ConfigUtils.get_stock("DATA_DIR")):
 				os.makedirs(ConfigUtils.get_stock("DATA_DIR"))
-			result.to_csv(os.path.join(ConfigUtils.get_stock("DATA_DIR"), str(code) + "_" + str(name) + ".csv"), index=False)
-			print("Downloading :" + code + " , name :" + name)
-
-			# 生成月线级别
-			result['date'] = pd.to_datetime(result['date'])
-			result = result.set_index('date')
-			result = result.sort_index(ascending=True)
-			df_period = result.to_period('M')
-			grouped = df_period.groupby('date')
-			results = pd.DataFrame(columns=['date', 'code', 'open',
-											'preclose', 'close', 'high', 'low', 'volume', 'turn', 'amount', 'pctChg'])
-			for date, group in grouped:
-
-				group["open"] = group['open'].astype(float)
-				group["high"] = group["high"].astype(float)
-				group["low"] = group["low"].astype(float)
-				group["close"] = group["close"].astype(float)
-				group["preclose"] = group["preclose"].astype(float)
-				group["volume"] = group["volume"].astype(float)
-				group["amount"] = group["amount"].astype(float)
-				group["turn"] = group["turn"].astype(float)
-				group["pctChg"] = group["pctChg"].astype(float)
-
-				code = group.iloc[0]['code']
-				open = group.iloc[0]['open']
-				preclose = group.iloc[0]['preclose']
-				close = group.iloc[-1]['close']
-				high = group['high'].max()
-				low = group['low'].min()
-				volume = group['volume'].sum()
-				turn = group['turn'].sum()
-				amount = group['amount'].sum()
-				if pd.isna(preclose):
-					pctChg = (close - open) / open
-				else:
-					pctChg = (close - preclose) / preclose
-				# print(name, code, preclose, open, close, high, low, volume, turn, amount, pctChg)
-
-				series = pd.Series({'date': date,
-									'code': code,
-									'open': open,
-									'preclose': preclose,
-									'close': close,
-									'high': high,
-									'low': low,
-									'volume': volume,
-									'turn': turn,
-									'amount': amount,
-									'pctChg': pctChg}, name=date)
-				results = results.append(series)
-			results.reset_index(drop=True)
-			results.to_csv(os.path.join(ConfigUtils.get_stock("DATA_M_DIR"), str(code) + "_" + str(name) + ".csv"), index=False)
-			print("M Downloading :" + str(code) + " , name :" + str(name))
+			result.to_csv(os.path.join(ConfigUtils.get_stock("DATA_DIR"), str(code) + "_" + str(name) + ".csv"),
+						  index=False)
+			print("Downloading :" + code + " , name :" + name + ", " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 		bs.logout()
 	except IOError as e:
 		print("Update Data Error ", e)
+
 
 def main(argv):
 	mode = None
