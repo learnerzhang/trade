@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import collections
 from common.config import ConfigUtils
 from common.entity import Record
-from common.mail_utils import send_hot_share_mail
+from common.mail_utils import send_hot_share_mail, send_month_share_mail
 from common.sql_utils import get_mark_stocks, insert_records, get_records, get_period_records
 from common.stock_utils import get_recently_trade_date
 from stock_analytic_modules.rough.m_hunt import get_m_candidates
@@ -88,7 +88,7 @@ def gen_records(day_ago=0):
 		volume_rate = (volume - df.iloc[-2]['volume']) / df.iloc[-2]['volume']
 		if float(chg) >= 9:
 			chgs = [c for c in df['pctChg']]  # 涨幅序列
-			vols = [v/df.iloc[0]['volume'] for v in df['volume']]  # 量比序列
+			vols = [v / df.iloc[0]['volume'] for v in df['volume']]  # 量比序列
 			extraJson = {'volume_rate': volume_rate, 'chgs': chgs, 'vols': vols}
 			r = Record(name, code, record_date, close, "d1", volume, chg)
 			r.set_direction(direction='limit')
@@ -167,13 +167,22 @@ def period_records():
 	extraResult['high'] = new_highs
 	extraResult['low'] = new_lows
 
-	# 月线趋势选股
-	# 结构 [(('sh.600196', '复星医药'), 44517688035.19, 2269476415.0), (('sh.600887', '伊利股份'), 29118278005.35, 1554822026.0), ..]
+	# # 月线趋势选股
+	# # 结构 [(('sh.600196', '复星医药'), 44517688035.19, 2269476415.0), (('sh.600887', '伊利股份'), 29118278005.35, 1554822026.0), ..]
+	# breakstocks, highstocks = get_m_candidates()
+	# extraResult['m_break'] = breakstocks
+	# extraResult['m_high'] = highstocks
+
+	send_hot_share_mail(outResult, extraResult)
+
+
+def month_records():
+	extraResult = collections.defaultdict(list)
+
 	breakstocks, highstocks = get_m_candidates()
 	extraResult['m_break'] = breakstocks
 	extraResult['m_high'] = highstocks
-
-	send_hot_share_mail(outResult, extraResult)
+	send_month_share_mail(extraResult)
 
 
 def main(argv):
@@ -195,6 +204,9 @@ def main(argv):
 
 	if mode == 'record':
 		period_records()
+
+	if mode == 'month':
+		month_records()
 
 
 if __name__ == '__main__':

@@ -86,7 +86,7 @@ def new_change_html(records):
 	if records:
 		bgcolor = '#FFFFF'
 		for r in records[:30]:
-			bgcolor ='#99FFFF'
+			bgcolor = '#99FFFF'
 			tr_html += """ <tr>
 			<td bgcolor='""" + bgcolor + """'>""" + r.code + """</td>
 			<td bgcolor='""" + bgcolor + """'>""" + r.name + """</td>
@@ -114,12 +114,11 @@ def big_change_html(elements, top=10):
 			code = elem[0][0]
 			name = elem[0][1]
 			num = elem[1]
-			text += name+"(" + code + ", " + str(num) + ")、"
+			text += name + "(" + code + ", " + str(num) + ")、"
 	return text[:-1]
 
 
 def send_hot_share_mail(contentResult, extraResult):
-
 	# 邮件主题
 	today = str(datetime.date.today())
 	message = MIMEMultipart()
@@ -153,28 +152,6 @@ def send_hot_share_mail(contentResult, extraResult):
   				<p><strong>周新高榜</strong></p>
   				<div> 
   					""" + big_change_html(extraResult['week_best'], top=20) + """
-  				<div>
-  				<p><strong>月级别突破</strong></p>
-  				<div>
-  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
-  						<tr>
-    						<td><strong>代码</strong></td>
-    						<td><strong>名称</strong></td>
-    						<td><strong>涨幅</strong></td>
-  						</tr>
-  						""" + new_change_html(extraResult['m_break']) + """
-  					</table>
-  				<div>
-  				<p><strong>月级新高股</strong></p>
-  				<div>
-  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
-  						<tr>
-    						<td><strong>代码</strong></td>
-    						<td><strong>名称</strong></td>
-    						<td><strong>涨幅</strong></td>
-  						</tr>
-  						""" + new_change_html(extraResult['m_high']) + """
-  					</table>
   				<div>
   				<p><strong>2年新高股</strong></p>
   				<div>
@@ -250,6 +227,76 @@ def send_hot_share_mail(contentResult, extraResult):
   			<div>
   		<body>
 	</html>
+	"""
+	# 登录并发送邮件
+	try:
+		smtpObj = smtplib.SMTP()
+		# 连接到服务器
+		smtpObj.connect(mail_host, 25)
+		# 登录到服务器
+		smtpObj.login(mail_user, mail_pass)
+		# 发送
+		context = MIMEText(html, _subtype='html', _charset='utf-8')  # 解决乱码
+		message.attach(context)
+		smtpObj.sendmail(sender, receivers, message.as_string())
+		# 退出
+		smtpObj.quit()
+		print('success')
+	except smtplib.SMTPException as e:
+		print('error', e)  # 打印错误
+
+
+def send_month_share_mail(results):
+	# 邮件主题
+	today = str(datetime.date.today())
+	message = MIMEMultipart()
+	message['Subject'] = '[MonthShare] {}/月强势股'.format(today)
+	# 发送方信息
+	message['From'] = sender
+	# 接受方信息
+	message['To'] = ';'.join(receivers)
+	html = """
+		<html xmlns="http://www.w3.org/1999/xhtml">
+			<head>
+				<style type="text/css">
+					table, td, th{
+	  					border:1px solid black;
+	  				}
+					th{
+	  					background-color:grey;
+	  					color:white;
+	  				}
+				</style>
+			</head>
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+			<title>月强势股票 #""" + today + """#</title>
+	  		<body>
+				<div id="container">
+	  				<p><strong>月级别突破</strong></p>
+	  				<div>
+	  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
+	  						<tr>
+	    						<td><strong>代码</strong></td>
+	    						<td><strong>名称</strong></td>
+	    						<td><strong>涨幅</strong></td>
+	  						</tr>
+	  						""" + new_change_html(results['m_break']) + """
+	  					</table>
+	  				<div>
+	  				<p><strong>月级新高股</strong></p>
+	  				<div>
+	  					<table width="500" border="1" cellspacing="2" bgcolor="#FFFFF">
+	  						<tr>
+	    						<td><strong>代码</strong></td>
+	    						<td><strong>名称</strong></td>
+	    						<td><strong>涨幅</strong></td>
+	  						</tr>
+	  						""" + new_change_html(results['m_high']) + """
+	  					</table>
+	  				<div>
+	  			<div>
+  			<body>
+		</html>
 	"""
 	# 登录并发送邮件
 	try:

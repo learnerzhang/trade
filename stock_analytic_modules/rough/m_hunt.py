@@ -68,10 +68,15 @@ def get_m_candidates():
 			r = Record(name, code, t_date, closeMax0, 'm', amount0, pch0)
 			high_stocks.append(r)
 
-	break_stocks = [r for r in break_stocks if r.volume < 5e11]
-	high_stocks = [r for r in high_stocks if r.volume < 90081936793]
 	break_stocks = sorted(break_stocks, key=lambda x: x.volume, reverse=True)
 	high_stocks = sorted(high_stocks, key=lambda x: x.volume, reverse=True)
+
+	# print(break_stocks[:30])
+	# print(high_stocks[:30])
+
+	break_stocks = [r for r in break_stocks if r.volume < 5e11]
+	high_stocks = [r for r in high_stocks if r.volume < 90081936793]
+
 	return break_stocks, high_stocks
 
 

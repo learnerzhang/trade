@@ -83,7 +83,8 @@ class BlockStock(Base):
 		self.block_id = b_id
 
 	def __repr__(self):
-		return "<BlockStock(id='%s', block_id='%s', stock_id='%s', flag='%s'>" % (self.id, self.block_id, self.stock_id, self.flag)
+		return "<BlockStock(id='%s', block_id='%s', stock_id='%s', flag='%s'>" % (
+			self.id, self.block_id, self.stock_id, self.flag)
 
 
 class Record(Base):
@@ -121,5 +122,8 @@ class Record(Base):
 		return hash(self.code + self.name + str(self.date))
 
 	def __repr__(self):
-		return "<Record(id='%s', date='%s', name='%s', code='%s', price='%s', period='%s', direction='%s', change='%s', extra='%s')>" % (
-			self.id, self.date, self.name, self.code, self.price, self.period, self.direction, self.change, self.extra)
+		return "<Record(id='%s', date='%s', name='%s', code='%s', " \
+			   "price='%s', period='%s', direction='%s', change='%s', " \
+			   "volume='%s', extra='%s')>" % (
+			   self.id, self.date, self.name, self.code, self.price, self.period, self.direction, self.change,
+			   self.volume, self.extra)
