@@ -6,6 +6,13 @@
 # @File    : helper.py.py
 # @Software: PyCharm
 import numpy as np
+import datetime
+
+
+def get_before_day(ago=1):
+	today = datetime.date.today()
+	period = datetime.timedelta(days=ago)
+	return today - period
 
 
 def moving_average(ts, win):

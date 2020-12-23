@@ -45,8 +45,10 @@ class RealTrade(object):
 		self.date = tradelists[30]
 		self.time = tradelists[31]
 		self.extra = tradelists[32:]
-
-		self.pctChg = round((float(self.price) - float(self.preclose)) / float(self.preclose), 3)
+		try:
+			self.pctChg = round((float(self.price) - float(self.preclose)) / float(self.preclose), 3)
+		except ZeroDivisionError:
+			self.pctChg = 0.0
 
 	def __repr__(self):
 		bsInfo = "[S({}-{}), ({}-{}), ({}-{}), ({}-{}), ({}-{}); B({}-{}), ({}-{}), ({}-{}), ({}-{}), ({}-{})]"\

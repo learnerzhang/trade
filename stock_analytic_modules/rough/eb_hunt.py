@@ -3,7 +3,7 @@
 # @Time    : 2020/12/16 5:13 下午
 # @Author  : zhangzhen12
 # @Site    : 
-# @File    : hunt.py
+# @File    : eb_hunt.py
 # @Software: PyCharm
 from sklearn.cluster import KMeans
 import numpy as np

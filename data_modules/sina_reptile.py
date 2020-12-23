@@ -16,7 +16,7 @@ STOCK_PERIOD_URL = 'http://money.finance.sina.com.cn/quotes_service/api/json_v2.
 
 def get_real_price(code):
 	url = STOCK_REAL_URL.format(code)
-	print("real url:", url)
+	# print("real url:", url)
 	resp = requests.get(url)
 	if resp.status_code == 200:
 		real_str = resp.text
@@ -31,7 +31,6 @@ def get_real_price(code):
 
 def get_mark_data(code, scale):
 	"""
-
 	:param code: [市场][股票代码]
 	:param scale: 5、10、30、60分钟
 	:return: day日期、open开盘价、high最高价、low最低价、close收盘价、volume成交量
@@ -47,8 +46,8 @@ def get_mark_data(code, scale):
 
 
 if __name__ == '__main__':
-	# rt = get_real_price('sh600006')
-	# print(rt)
-
-	rt = get_mark_data('sh600006', scale='5')
+	rt = get_real_price('sh600006')
 	print(rt)
+	#
+	# rt = get_mark_data('sh600006', scale='5')
+	# print(rt)
