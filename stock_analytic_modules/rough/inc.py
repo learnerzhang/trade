@@ -128,7 +128,8 @@ def period_records():
 	bestStocks = []
 
 	dt = get_recently_trade_date()
-
+	print("recently date:", dt)
+	# dt = '2020-12-22'
 	new_highs = [r for r in get_records(dt=dt, direction='up', period='d500') if r.code[3:] in candidate_stocks]
 	new_lows = [r for r in get_records(dt=dt, direction='down', period='d500') if r.code[3:] in candidate_stocks]
 
@@ -136,6 +137,7 @@ def period_records():
 	pool['d20'] = get_records(dt=dt, direction='up', period='d20')
 	pool['d10'] = get_records(dt=dt, direction='up', period='d10')
 	pool['d5'] = get_records(dt=dt, direction='up', period='d5')
+	print("d5:", len(pool['d5']), "d10:", len(pool['d10']), "d20:", len(pool['d20']), "d60:", len(pool['d60']))
 
 	for k, records in pool.items():
 		hsb = [r for r in records if r.code[3:] in hsb_stocks][:HSB_NUM]
